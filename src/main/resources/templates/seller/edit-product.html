@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Edit Product – EcommerceHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<nav class="app-nav">
+    <div class="nav-brand">📦 SellerPro</div>
+    <div class="nav-links">
+        <a th:href="@{/seller/dashboard}" class="nav-link">Dashboard</a>
+        <a th:href="@{/seller/products}" class="nav-link">Products</a>
+    </div>
+    <div class="nav-user">
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline">Logout</a>
+    </div>
+</nav>
+
+<div class="app-container narrow">
+    <h1 class="page-title">Edit Product</h1>
+    <div class="alert alert-error" th:if="${errorMsg}" th:text="${errorMsg}"></div>
+
+    <div class="existing-image" th:if="${existingImagePath != null and !existingImagePath.isEmpty()}">
+        <label>Current Image</label>
+        <img th:src="@{${existingImagePath}}" alt="Current product image" style="max-height:120px; border-radius:8px;"/>
+    </div>
+
+    <form th:action="@{/seller/product/update/{id}(id=${productId})}" th:object="${productDto}"
+          method="post" enctype="multipart/form-data" class="form-card">
+        <div class="form-group">
+            <label>Product Name *</label>
+            <input type="text" th:field="*{name}" required/>
+            <span class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+        </div>
+        <div class="form-group">
+            <label>Category *</label>
+            <select th:field="*{category}" required>
+                <option value="Dairy">Dairy</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Grains">Grains</option>
+                <option value="Beverages">Beverages</option>
+                <option value="Snacks">Snacks</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Quantity *</label>
+                <input type="number" th:field="*{quantity}" min="0" required/>
+                <span class="field-error" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></span>
+            </div>
+            <div class="form-group">
+                <label>Price (₹) *</label>
+                <input type="number" th:field="*{price}" min="1" required/>
+                <span class="field-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Expiry Date *</label>
+            <input type="date" th:field="*{expiry}" required/>
+        </div>
+        <div class="form-group">
+            <label>Replace Image (optional)</label>
+            <input type="file" name="image" accept="image/*" class="file-input"/>
+        </div>
+        <div class="form-actions">
+            <a th:href="@{/seller/products}" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">Update Product</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

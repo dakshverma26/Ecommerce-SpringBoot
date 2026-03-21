@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Error – EcommerceHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<div class="success-page">
+    <div class="success-icon error-icon">⚠️</div>
+    <h1 th:text="${errorTitle ?: 'Something went wrong'}">Error</h1>
+    <p class="success-sub" th:text="${errorMessage ?: 'An unexpected error occurred.'}">Error message</p>
+    <div class="success-actions">
+        <a th:href="@{/}" class="btn btn-primary">Go Home</a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Buyer Register – EcommerceHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="auth-body">
+<div class="auth-card">
+    <div class="auth-left">
+        <div class="brand-logo">🛍️</div>
+        <h2 class="brand-name">Create Account</h2>
+        <p class="brand-sub">Start shopping today!</p>
+        <div class="alert alert-error" th:if="${errorMsg}" th:text="${errorMsg}"></div>
+
+        <form th:action="@{/buyer/register}" th:object="${buyerDto}" method="post" class="auth-form">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" th:field="*{name}" placeholder="Your Name" required/>
+                <span class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" th:field="*{email}" placeholder="buyer@email.com" required/>
+                <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" th:field="*{password}" placeholder="Min. 6 characters" required/>
+                <span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+            </div>
+            <div class="form-group">
+                <label>Address (optional)</label>
+                <input type="text" th:field="*{address}" placeholder="Your delivery address"/>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+        </form>
+        <div class="auth-footer">
+            <span>Have an account? </span>
+            <a th:href="@{/buyer/login}" class="link">Login</a>
+        </div>
+        <div class="auth-footer">
+            <a th:href="@{/}" class="link muted">← Back to Home</a>
+        </div>
+    </div>
+    <div class="auth-right buyer-gradient">
+        <div class="auth-illustration">
+            <div class="big-icon">✨</div>
+            <p>Join thousands of happy buyers.<br/>Fast delivery. Easy returns.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# ─── Java Build Output ────────────────────────────
+target/
+*.class
+*.jar
+*.war
+
+# ─── IDE ──────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.classpath
+.project
+
+# ─── Maven ────────────────────────────────────────
+.mvn/wrapper/maven-wrapper.jar
+
+# ─── Application ──────────────────────────────────
+uploads/
+*.log
+logs/
+
+# ─── OS ───────────────────────────────────────────
+.DS_Store
+Thumbs.db

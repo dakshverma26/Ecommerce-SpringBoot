@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Order Confirmations – Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<nav class="app-nav">
+    <div class="nav-brand">🛡️ Admin Panel</div>
+    <div class="nav-links">
+        <a th:href="@{/admin/dashboard}" class="nav-link">Dashboard</a>
+        <a th:href="@{/admin/confirmations}" class="nav-link active">Confirmations</a>
+        <a th:href="@{/admin/sellers}" class="nav-link">Sellers</a>
+        <a th:href="@{/admin/buyers}" class="nav-link">Buyers</a>
+    </div>
+    <div class="nav-user">
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline">Logout</a>
+    </div>
+</nav>
+
+<div class="app-container">
+    <h1 class="page-title">Order Confirmations</h1>
+    <div class="alert alert-success" th:if="${successMsg}" th:text="${successMsg}"></div>
+    <div class="alert alert-error" th:if="${errorMsg}" th:text="${errorMsg}"></div>
+
+    <table class="data-table" th:if="${!confirmations.isEmpty()}">
+        <thead>
+        <tr>
+            <th>Conf. ID</th>
+            <th>Order ID</th>
+            <th>Buyer</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="c : ${confirmations}">
+            <td th:text="${c.id}">#</td>
+            <td th:text="'#' + ${c.order.id}">#</td>
+            <td th:text="${c.order.buyer.email}">buyer</td>
+            <td th:text="'₹' + ${c.order.totalAmount}">₹0</td>
+            <td>
+                <span class="status-badge"
+                      th:classappend="${c.status.name() == 'PROCESSED'} ? 'status-confirmed' : 'status-pending'"
+                      th:text="${c.status}">PENDING</span>
+            </td>
+            <td th:text="${c.createdAt}">—</td>
+            <td>
+                <form th:action="@{/admin/confirm/{id}(id=${c.id})}" method="post"
+                      th:if="${c.status.name() == 'PENDING'}">
+                    <button type="submit" class="btn btn-sm btn-primary"
+                            onclick="return confirm('Confirm this order?')">Confirm</button>
+                </form>
+                <span th:unless="${c.status.name() == 'PENDING'}" class="muted">Done</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="empty-state" th:if="${confirmations.isEmpty()}">
+        <div class="empty-icon">✅</div>
+        <p>No confirmations yet.</p>
+    </div>
+</div>
+</body>
+</html>

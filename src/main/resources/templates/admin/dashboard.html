@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Admin Dashboard – EcommerceHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<nav class="app-nav">
+    <div class="nav-brand">🛡️ Admin Panel</div>
+    <div class="nav-links">
+        <a th:href="@{/admin/dashboard}" class="nav-link active">Dashboard</a>
+        <a th:href="@{/admin/confirmations}" class="nav-link">Confirmations</a>
+        <a th:href="@{/admin/sellers}" class="nav-link">Sellers</a>
+        <a th:href="@{/admin/buyers}" class="nav-link">Buyers</a>
+    </div>
+    <div class="nav-user">
+        <span th:text="'Admin: ' + ${adminUser}"></span>
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline">Logout</a>
+    </div>
+</nav>
+
+<div class="app-container">
+    <h1 class="page-title">Admin Dashboard</h1>
+    <div class="stats-grid three-col">
+        <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-value" th:text="${pendingCount}">0</div>
+            <div class="stat-label">Pending Confirmations</div>
+            <a th:href="@{/admin/confirmations}" class="stat-link">View →</a>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value" th:text="${sellerCount}">0</div>
+            <div class="stat-label">Total Sellers</div>
+            <a th:href="@{/admin/sellers}" class="stat-link">View →</a>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" th:text="${buyerCount}">0</div>
+            <div class="stat-label">Total Buyers</div>
+            <a th:href="@{/admin/buyers}" class="stat-link">View →</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Buyers – Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<nav class="app-nav">
+    <div class="nav-brand">🛡️ Admin Panel</div>
+    <div class="nav-links">
+        <a th:href="@{/admin/dashboard}" class="nav-link">Dashboard</a>
+        <a th:href="@{/admin/confirmations}" class="nav-link">Confirmations</a>
+        <a th:href="@{/admin/sellers}" class="nav-link">Sellers</a>
+        <a th:href="@{/admin/buyers}" class="nav-link active">Buyers</a>
+    </div>
+    <div class="nav-user"><a th:href="@{/logout}" class="btn btn-sm btn-outline">Logout</a></div>
+</nav>
+<div class="app-container">
+    <h1 class="page-title">Registered Buyers</h1>
+    <table class="data-table" th:if="${!buyers.isEmpty()}">
+        <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Address</th><th>Joined</th></tr></thead>
+        <tbody>
+        <tr th:each="b,i : ${buyers}">
+            <td th:text="${i.count}">1</td>
+            <td th:text="${b.name}">Name</td>
+            <td th:text="${b.email}">Email</td>
+            <td th:text="${b.address != null ? b.address : '—'}">—</td>
+            <td th:text="${b.createdAt}">—</td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="empty-state" th:if="${buyers.isEmpty()}">
+        <div class="empty-icon">👥</div><p>No buyers registered yet.</p>
+    </div>
+</div>
+</body>
+</html>

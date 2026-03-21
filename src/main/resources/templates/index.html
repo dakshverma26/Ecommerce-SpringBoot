@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>EcommerceHub – Your Online Market</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body class="home-body">
+<nav class="home-nav">
+    <div class="nav-brand">🛒 EcommerceHub</div>
+</nav>
+
+<main class="home-hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Your Online Market</h1>
+        <p class="hero-sub">Shop from trusted sellers. Sell to millions of buyers.<br/>Fast, secure, and seamless.</p>
+        <div class="role-cards">
+            <a class="role-card buyer-card" th:href="@{/buyer/login}">
+                <div class="role-icon">🛍️</div>
+                <div class="role-title">Buyer</div>
+                <div class="role-desc">Browse products & place orders</div>
+            </a>
+            <a class="role-card seller-card" th:href="@{/seller/login}">
+                <div class="role-icon">📦</div>
+                <div class="role-title">Seller</div>
+                <div class="role-desc">List products & grow your business</div>
+            </a>
+            <a class="role-card admin-card" th:href="@{/admin/login}">
+                <div class="role-icon">🛡️</div>
+                <div class="role-title">Admin</div>
+                <div class="role-desc">Manage platform & confirmations</div>
+            </a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Payment – EcommerceHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<nav class="app-nav">
+    <div class="nav-brand">🛍️ EcommerceHub</div>
+    <div class="nav-user">
+        <span th:text="${buyerName}"></span>
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline">Logout</a>
+    </div>
+</nav>
+
+<div class="app-container narrow">
+    <h1 class="page-title">💳 Confirm & Pay</h1>
+
+    <div class="order-summary">
+        <h3>Order Summary</h3>
+        <div class="order-item" th:each="item : ${cart}">
+            <span th:text="${item.productName} + ' × ' + ${item.quantity}"></span>
+            <span th:text="'₹' + ${item.subtotal}"></span>
+        </div>
+        <div class="order-total">
+            <strong>Total Amount</strong>
+            <strong th:text="'₹' + ${total}"></strong>
+        </div>
+    </div>
+
+    <div class="payment-info">
+        <div class="info-card">
+            <div class="info-icon">📋</div>
+            <p>After placing your order, an admin will review and confirm it. You'll be able to track the status in <strong>My Orders</strong>.</p>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a th:href="@{/buyer/cart}" class="btn btn-outline">← Back to Cart</a>
+        <form th:action="@{/buyer/order/place}" method="post" style="display:inline">
+            <button type="submit" class="btn btn-primary">✅ Place Order</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

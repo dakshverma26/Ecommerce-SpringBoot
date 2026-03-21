@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Seller Dashboard – EcommerceHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<nav class="app-nav">
+    <div class="nav-brand">📦 SellerPro</div>
+    <div class="nav-links">
+        <a th:href="@{/seller/dashboard}" class="nav-link active">Dashboard</a>
+        <a th:href="@{/seller/products}" class="nav-link">Products</a>
+        <a th:href="@{/seller/product/add}" class="nav-link">Add Product</a>
+    </div>
+    <div class="nav-user">
+        <span th:text="'Hello, ' + ${sellerName} + '!'"></span>
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline">Logout</a>
+    </div>
+</nav>
+
+<div class="app-container">
+    <div class="alert alert-success" th:if="${successMsg}" th:text="${successMsg}"></div>
+    <div class="alert alert-error" th:if="${errorMsg}" th:text="${errorMsg}"></div>
+
+    <h1 class="page-title">Seller Dashboard</h1>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value" th:text="${productCount}">0</div>
+            <div class="stat-label">Total Products</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value" th:text="'₹' + ${#numbers.formatDecimal(revenue, 0, 'COMMA', 2, 'POINT')}">₹0</div>
+            <div class="stat-label">Total Revenue</div>
+        </div>
+    </div>
+
+    <div class="section-header">
+        <h2>Your Products</h2>
+        <a th:href="@{/seller/product/add}" class="btn btn-primary">+ Add New Product</a>
+    </div>
+
+    <div class="product-grid" th:if="${!products.isEmpty()}">
+        <div class="product-card" th:each="product : ${products}">
+            <div class="product-img-wrap">
+                <img class="product-img"
+                     th:if="${product.imagePath != null and !product.imagePath.isEmpty()}"
+                     th:src="@{${product.imagePath}}" th:alt="${product.name}"/>
+                <div class="product-img-placeholder" th:unless="${product.imagePath != null and !product.imagePath.isEmpty()}">📷</div>
+            </div>
+            <div class="product-info">
+                <div class="product-name" th:text="${product.name}">Name</div>
+                <div class="product-category badge" th:text="${product.category}">Category</div>
+                <div class="product-meta">
+                    <span>Qty: <strong th:text="${product.quantity}">0</strong></span>
+                    <span class="product-price" th:text="'₹' + ${product.price}">₹0</span>
+                </div>
+                <div class="product-expiry" th:if="${product.expiry != null}">
+                    Expires: <span th:text="${product.expiry}"></span>
+                </div>
+                <div class="product-actions">
+                    <a th:href="@{/seller/product/edit/{id}(id=${product.id})}" class="btn btn-sm btn-secondary">Edit</a>
+                    <form th:action="@{/seller/product/delete/{id}(id=${product.id})}" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-sm btn-danger"
+                                onclick="return confirm('Delete this product?')">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="empty-state" th:if="${products.isEmpty()}">
+        <div class="empty-icon">📦</div>
+        <p>No products yet. <a th:href="@{/seller/product/add}" class="link">Add your first product!</a></p>
+    </div>
+</div>
+</body>
+</html>

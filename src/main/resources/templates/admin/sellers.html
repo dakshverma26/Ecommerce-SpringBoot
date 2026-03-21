@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Sellers – Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<nav class="app-nav">
+    <div class="nav-brand">🛡️ Admin Panel</div>
+    <div class="nav-links">
+        <a th:href="@{/admin/dashboard}" class="nav-link">Dashboard</a>
+        <a th:href="@{/admin/confirmations}" class="nav-link">Confirmations</a>
+        <a th:href="@{/admin/sellers}" class="nav-link active">Sellers</a>
+        <a th:href="@{/admin/buyers}" class="nav-link">Buyers</a>
+    </div>
+    <div class="nav-user"><a th:href="@{/logout}" class="btn btn-sm btn-outline">Logout</a></div>
+</nav>
+<div class="app-container">
+    <h1 class="page-title">Registered Sellers</h1>
+    <table class="data-table" th:if="${!sellers.isEmpty()}">
+        <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Revenue</th><th>Joined</th></tr></thead>
+        <tbody>
+        <tr th:each="s,i : ${sellers}">
+            <td th:text="${i.count}">1</td>
+            <td th:text="${s.name}">Name</td>
+            <td th:text="${s.email}">Email</td>
+            <td th:text="'₹' + ${#numbers.formatDecimal(s.totalRevenue, 0, 'COMMA', 2, 'POINT')}">₹0</td>
+            <td th:text="${s.createdAt}">—</td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="empty-state" th:if="${sellers.isEmpty()}">
+        <div class="empty-icon">📦</div><p>No sellers registered yet.</p>
+    </div>
+</div>
+</body>
+</html>

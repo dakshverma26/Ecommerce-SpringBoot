@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>My Products – EcommerceHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<nav class="app-nav">
+    <div class="nav-brand">📦 SellerPro</div>
+    <div class="nav-links">
+        <a th:href="@{/seller/dashboard}" class="nav-link">Dashboard</a>
+        <a th:href="@{/seller/products}" class="nav-link active">Products</a>
+        <a th:href="@{/seller/product/add}" class="nav-link">Add Product</a>
+    </div>
+    <div class="nav-user">
+        <span th:text="${sellerName}"></span>
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline">Logout</a>
+    </div>
+</nav>
+
+<div class="app-container">
+    <div class="alert alert-success" th:if="${successMsg}" th:text="${successMsg}"></div>
+    <div class="section-header">
+        <h1 class="page-title">Product Inventory</h1>
+        <a th:href="@{/seller/product/add}" class="btn btn-primary">+ Add New</a>
+    </div>
+
+    <table class="data-table" th:if="${!products.isEmpty()}">
+        <thead>
+        <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Expiry</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${products}">
+            <td>
+                <img class="table-img"
+                     th:if="${p.imagePath != null and !p.imagePath.isEmpty()}"
+                     th:src="@{${p.imagePath}}" th:alt="${p.name}"/>
+                <span th:unless="${p.imagePath != null and !p.imagePath.isEmpty()}">—</span>
+            </td>
+            <td th:text="${p.name}">Name</td>
+            <td><span class="badge" th:text="${p.category}">—</span></td>
+            <td th:text="${p.quantity}">0</td>
+            <td th:text="'₹' + ${p.price}">₹0</td>
+            <td th:text="${p.expiry}">—</td>
+            <td class="action-cell">
+                <a th:href="@{/seller/product/edit/{id}(id=${p.id})}" class="btn btn-sm btn-secondary">Edit</a>
+                <form th:action="@{/seller/product/delete/{id}(id=${p.id})}" method="post" style="display:inline">
+                    <button type="submit" class="btn btn-sm btn-danger"
+                            onclick="return confirm('Delete this product?')">Delete</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="empty-state" th:if="${products.isEmpty()}">
+        <div class="empty-icon">📦</div>
+        <p>No products yet. <a th:href="@{/seller/product/add}" class="link">Add your first product!</a></p>
+    </div>
+</div>
+</body>
+</html>

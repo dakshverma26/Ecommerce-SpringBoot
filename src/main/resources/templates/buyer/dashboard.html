@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Shop – EcommerceHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<nav class="app-nav">
+    <div class="nav-brand">🛍️ EcommerceHub</div>
+    <div class="nav-links">
+        <a th:href="@{/buyer/dashboard}" class="nav-link active">Shop</a>
+        <a th:href="@{/buyer/orders}" class="nav-link">My Orders</a>
+    </div>
+    <div class="nav-user">
+        <span th:text="'Hello, ' + ${buyerName} + '!'"></span>
+        <a th:href="@{/buyer/cart}" class="btn btn-sm btn-secondary">
+            🛒 Cart <span class="cart-count" th:if="${cartCount > 0}" th:text="${cartCount}"></span>
+        </a>
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline">Logout</a>
+    </div>
+</nav>
+
+<div class="app-container">
+    <div class="alert alert-success" th:if="${successMsg}" th:text="${successMsg}"></div>
+    <div class="alert alert-error" th:if="${errorMsg}" th:text="${errorMsg}"></div>
+
+    <h1 class="page-title">Browse Products</h1>
+
+    <div class="product-grid" th:if="${!products.isEmpty()}">
+        <div class="product-card buyer-product-card" th:each="p : ${products}">
+            <div class="product-img-wrap">
+                <img class="product-img"
+                     th:if="${p.imagePath != null and !p.imagePath.isEmpty()}"
+                     th:src="@{${p.imagePath}}" th:alt="${p.name}"/>
+                <div class="product-img-placeholder" th:unless="${p.imagePath != null and !p.imagePath.isEmpty()}">🛒</div>
+            </div>
+            <div class="product-info">
+                <div class="product-name" th:text="${p.name}">Product</div>
+                <div class="product-seller muted" th:text="'By: ' + ${p.seller.name}">Seller</div>
+                <div class="product-category badge" th:text="${p.category}">Category</div>
+                <div class="product-meta">
+                    <span class="product-price" th:text="'₹' + ${p.price}">₹0</span>
+                    <span class="stock-tag" th:text="'Stock: ' + ${p.quantity}">Stock</span>
+                </div>
+                <form th:action="@{/buyer/cart/add}" method="post" class="add-to-cart-form">
+                    <input type="hidden" name="productId" th:value="${p.id}"/>
+                    <div class="qty-row">
+                        <input type="number" name="quantity" value="1" min="1"
+                               th:max="${p.quantity}" class="qty-input"/>
+                        <button type="submit" class="btn btn-primary">Add to Cart</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="empty-state" th:if="${products.isEmpty()}">
+        <div class="empty-icon">🛒</div>
+        <p>No products available right now. Check back soon!</p>
+    </div>
+</div>
+</body>
+</html>

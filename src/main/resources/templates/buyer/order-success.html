@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Order Placed! – EcommerceHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<div class="success-page">
+    <div class="success-icon">🎉</div>
+    <h1>Order Placed Successfully!</h1>
+    <p class="success-sub">Your order has been submitted and is awaiting admin confirmation.</p>
+    <div class="order-info-box" th:if="${orderId != null}">
+        <span>Order ID: <strong th:text="'#' + ${orderId}"></strong></span>
+        <span>Total: <strong th:text="'₹' + ${total}"></strong></span>
+    </div>
+    <div class="success-actions">
+        <a th:href="@{/buyer/orders}" class="btn btn-secondary">View My Orders</a>
+        <a th:href="@{/buyer/dashboard}" class="btn btn-primary">Continue Shopping</a>
+    </div>
+</div>
+</body>
+</html>

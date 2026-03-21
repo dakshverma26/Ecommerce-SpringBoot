@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Your Cart – EcommerceHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<nav class="app-nav">
+    <div class="nav-brand">🛍️ EcommerceHub</div>
+    <div class="nav-links">
+        <a th:href="@{/buyer/dashboard}" class="nav-link">Shop</a>
+        <a th:href="@{/buyer/cart}" class="nav-link active">Cart</a>
+        <a th:href="@{/buyer/orders}" class="nav-link">My Orders</a>
+    </div>
+    <div class="nav-user">
+        <span th:text="${buyerName}"></span>
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline">Logout</a>
+    </div>
+</nav>
+
+<div class="app-container narrow">
+    <h1 class="page-title">🛒 Your Cart</h1>
+    <div class="alert alert-success" th:if="${successMsg}" th:text="${successMsg}"></div>
+    <div class="alert alert-error" th:if="${errorMsg}" th:text="${errorMsg}"></div>
+
+    <div th:if="${!cart.isEmpty()}">
+        <div class="cart-item" th:each="item : ${cart}">
+            <div class="cart-img-wrap">
+                <img class="cart-img"
+                     th:if="${item.imagePath != null and !item.imagePath.isEmpty()}"
+                     th:src="@{${item.imagePath}}" th:alt="${item.productName}"/>
+                <span class="cart-img-placeholder" th:unless="${item.imagePath != null and !item.imagePath.isEmpty()}">📦</span>
+            </div>
+            <div class="cart-item-info">
+                <div class="cart-item-name" th:text="${item.productName}">Product</div>
+                <div class="cart-item-meta">
+                    <span th:text="'By: ' + ${item.sellerName}" class="muted"></span>
+                    <span th:text="${item.category}" class="badge"></span>
+                </div>
+                <div class="cart-item-pricing">
+                    <span th:text="'₹' + ${item.price} + ' × ' + ${item.quantity}"></span>
+                    <strong th:text="'= ₹' + ${item.subtotal}"></strong>
+                </div>
+            </div>
+            <form th:action="@{/buyer/cart/remove}" method="post">
+                <input type="hidden" name="productId" th:value="${item.productId}"/>
+                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+            </form>
+        </div>
+
+        <div class="cart-total">
+            <span>Total</span>
+            <strong th:text="'₹' + ${total}">₹0</strong>
+        </div>
+
+        <div class="cart-actions">
+            <form th:action="@{/buyer/cart/clear}" method="post">
+                <button type="submit" class="btn btn-outline">Clear Cart</button>
+            </form>
+            <a th:href="@{/buyer/payment}" class="btn btn-primary">Proceed to Payment →</a>
+        </div>
+    </div>
+
+    <div class="empty-state" th:if="${cart.isEmpty()}">
+        <div class="empty-icon">🛒</div>
+        <p>Your cart is empty. <a th:href="@{/buyer/dashboard}" class="link">Continue shopping</a></p>
+    </div>
+</div>
+</body>
+</html>

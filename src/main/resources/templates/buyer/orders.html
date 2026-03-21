@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>My Orders – EcommerceHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-body">
+<nav class="app-nav">
+    <div class="nav-brand">🛍️ EcommerceHub</div>
+    <div class="nav-links">
+        <a th:href="@{/buyer/dashboard}" class="nav-link">Shop</a>
+        <a th:href="@{/buyer/orders}" class="nav-link active">My Orders</a>
+    </div>
+    <div class="nav-user">
+        <span th:text="${buyerName}"></span>
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline">Logout</a>
+    </div>
+</nav>
+<div class="app-container">
+    <h1 class="page-title">My Orders</h1>
+    <div th:if="${!orders.isEmpty()}">
+        <div class="order-card" th:each="order : ${orders}">
+            <div class="order-header">
+                <span class="order-id" th:text="'Order #' + ${order.id}"></span>
+                <span class="status-badge"
+                      th:classappend="${order.status.name() == 'CONFIRMED'} ? 'status-confirmed' :
+                                      (${order.status.name() == 'CANCELLED'} ? 'status-cancelled' : 'status-pending')"
+                      th:text="${order.status}">PENDING</span>
+            </div>
+            <div class="order-meta">
+                <span th:text="'Total: ₹' + ${order.totalAmount}"></span>
+                <span th:text="${order.createdAt}" class="muted"></span>
+            </div>
+            <div class="order-items" th:if="${order.items != null}">
+                <div th:each="item : ${order.items}" class="order-item-row">
+                    <span th:text="${item.product.name}"></span>
+                    <span th:text="'× ' + ${item.quantity}"></span>
+                    <span th:text="'₹' + ${item.subtotal}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="empty-state" th:if="${orders.isEmpty()}">
+        <div class="empty-icon">📋</div>
+        <p>No orders yet. <a th:href="@{/buyer/dashboard}" class="link">Start shopping!</a></p>
+    </div>
+</div>
+</body>
+</html>

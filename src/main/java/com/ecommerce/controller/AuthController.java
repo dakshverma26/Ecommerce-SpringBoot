@@ -1,5 +1,6 @@
 package com.ecommerce.controller;
 
+import com.ecommerce.dto.AdminRegisterDto;
 import com.ecommerce.dto.BuyerRegisterDto;
 import com.ecommerce.dto.LoginDto;
 import com.ecommerce.dto.SellerRegisterDto;
@@ -143,6 +144,26 @@ public class AuthController {
         }
         model.addAttribute("errorMsg", "Invalid username or password");
         return "admin/login";
+    }
+
+    @GetMapping("/admin/register")
+    public String adminRegisterPage(Model model) {
+        model.addAttribute("adminDto", new AdminRegisterDto());
+        return "admin/register";
+    }
+
+    @PostMapping("/admin/register")
+    public String adminRegister(@Valid @ModelAttribute("adminDto") AdminRegisterDto dto,
+                                BindingResult result, RedirectAttributes redirectAttrs, Model model) {
+        if (result.hasErrors()) return "admin/register";
+        try {
+            adminService.register(dto);
+            redirectAttrs.addFlashAttribute("successMsg", "Admin account created! Please login.");
+            return "redirect:/admin/login";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMsg", e.getMessage());
+            return "admin/register";
+        }
     }
 
     // ─── Logout ────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 package com.ecommerce.service;
 
+import com.ecommerce.dto.AdminRegisterDto;
 import com.ecommerce.entity.Admin;
 import com.ecommerce.entity.AdminConfirmation;
 import com.ecommerce.repository.AdminConfirmationRepository;
@@ -22,10 +23,29 @@ public class AdminService {
     private final AdminConfirmationRepository confirmationRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // ─── Authentication ────────────────────────────────────────────────────
+
     public Optional<Admin> authenticate(String username, String rawPassword) {
+        // NoOpPasswordEncoder: matches() does a plain equals() comparison
         return adminRepository.findByUsername(username)
                 .filter(admin -> passwordEncoder.matches(rawPassword, admin.getPasswordHash()));
     }
+
+    // ─── Registration ──────────────────────────────────────────────────────
+
+    @Transactional
+    public Admin register(AdminRegisterDto dto) {
+        if (adminRepository.existsByUsername(dto.getUsername())) {
+            throw new IllegalArgumentException("Username already taken: " + dto.getUsername());
+        }
+        // NoOpPasswordEncoder: encode() returns the password as-is (plain text)
+        Admin admin = new Admin(dto.getUsername(), passwordEncoder.encode(dto.getPassword()));
+        Admin saved = adminRepository.save(admin);
+        log.info("Admin registered: {}", saved.getUsername());
+        return saved;
+    }
+
+    // ─── Confirmations ─────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public List<AdminConfirmation> getAllConfirmations() {
@@ -38,3 +58,4 @@ public class AdminService {
                 .findByStatusOrderByCreatedAtDesc(AdminConfirmation.ConfirmationStatus.PENDING);
     }
 }
+

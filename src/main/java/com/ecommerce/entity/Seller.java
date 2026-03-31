@@ -9,6 +9,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Seller entity.
+ * Passwords are stored in PLAIN TEXT for this development phase.
+ */
 @Entity
 @Table(name = "sellers")
 @Data
@@ -28,9 +32,10 @@ public class Seller {
     @Column(nullable = false, unique = true)
     private String email;
 
+    // Plain-text password. Column kept as 'password_hash' in DB for backward compat.
     @NotBlank
-    @Column(nullable = false)
-    private String passwordHash;
+    @Column(name = "password_hash", nullable = false)
+    private String password;
 
     @Column(nullable = false)
     private double totalRevenue = 0.0;
@@ -44,9 +49,9 @@ public class Seller {
     @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> products;
 
-    public Seller(String name, String email, String passwordHash) {
+    public Seller(String name, String email, String password) {
         this.name = name;
         this.email = email;
-        this.passwordHash = passwordHash;
+        this.password = password;
     }
 }

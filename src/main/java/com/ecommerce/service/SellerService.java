@@ -9,7 +9,6 @@ import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.repository.SellerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +16,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * SellerService — manages seller registration, auth, and product CRUD.
+ *
+ * NOTE: Passwords are stored and compared in PLAIN TEXT for this dev phase.
+ * No PasswordEncoder is used intentionally.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,7 +29,6 @@ public class SellerService {
 
     private final SellerRepository sellerRepository;
     private final ProductRepository productRepository;
-    private final PasswordEncoder passwordEncoder;
     private final FileService fileService;
 
     // ─── Registration ─────────────────────────────────────────────────────
@@ -34,8 +38,8 @@ public class SellerService {
         if (sellerRepository.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("Email already registered: " + dto.getEmail());
         }
-        String hash = passwordEncoder.encode(dto.getPassword());
-        Seller seller = new Seller(dto.getName(), dto.getEmail(), hash);
+        // Store password in plain text — no encoding
+        Seller seller = new Seller(dto.getName(), dto.getEmail(), dto.getPassword());
         Seller saved = sellerRepository.save(seller);
         log.info("Seller registered: {}", saved.getEmail());
         return saved;
@@ -43,9 +47,15 @@ public class SellerService {
 
     // ─── Authentication ────────────────────────────────────────────────────
 
+    /**
+     * Authenticate seller by email and plain-text password.
+     */
     public Optional<Seller> authenticate(String email, String rawPassword) {
+        if (email == null || email.isBlank() || rawPassword == null || rawPassword.isBlank()) {
+            return Optional.empty();
+        }
         return sellerRepository.findByEmail(email)
-                .filter(seller -> passwordEncoder.matches(rawPassword, seller.getPasswordHash()));
+                .filter(seller -> rawPassword.equals(seller.getPassword()));
     }
 
     // ─── Product CRUD ──────────────────────────────────────────────────────

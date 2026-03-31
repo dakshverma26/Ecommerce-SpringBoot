@@ -6,7 +6,6 @@ import com.ecommerce.entity.Product;
 import com.ecommerce.service.BuyerService;
 import com.ecommerce.service.OrderService;
 import com.ecommerce.service.ProductService;
-import com.ecommerce.service.SellerService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,20 +43,26 @@ public class BuyerController {
     }
 
     // ─── Cart ─────────────────────────────────────────────────────────────
-    /**
-     * Add a product to the session cart.
-     * NOTE: Session-based cart — simple and sufficient for this scope.
-     * Future improvement: move to Redis or DB-backed cart in production.
-     */
     @PostMapping("/cart/add")
     public String addToCart(@RequestParam Long productId,
                             @RequestParam int quantity,
                             HttpSession session,
                             RedirectAttributes redirectAttrs) {
-        Product product = productService.getAllProducts().stream()
+        // Guard: invalid quantity
+        if (productId == null) {
+            redirectAttrs.addFlashAttribute("errorMsg", "Invalid product.");
+            return "redirect:/buyer/dashboard";
+        }
+
+        Product product = productService.getAllAvailableProducts().stream()
                 .filter(p -> p.getId().equals(productId))
                 .findFirst()
-                .orElseThrow(() -> new com.ecommerce.exception.ResourceNotFoundException("Product not found"));
+                .orElse(null);
+
+        if (product == null) {
+            redirectAttrs.addFlashAttribute("errorMsg", "Product not found or out of stock.");
+            return "redirect:/buyer/dashboard";
+        }
 
         if (quantity < 1 || quantity > product.getQuantity()) {
             redirectAttrs.addFlashAttribute("errorMsg",
@@ -126,7 +131,12 @@ public class BuyerController {
         return "redirect:/buyer/cart";
     }
 
-    // ─── Payment / Order ───────────────────────────────────────────────────
+    // ─── Checkout — Payment Bypassed ───────────────────────────────────────
+    /**
+     * Payment gateway is DISABLED for this phase.
+     * The /buyer/payment page now shows an order summary and a direct
+     * "Place Order" button — no payment verification is performed.
+     */
     @GetMapping("/payment")
     public String paymentPage(HttpSession session, Model model) {
         List<CartItemDto> cart = getCart(session);
@@ -141,8 +151,15 @@ public class BuyerController {
     @PostMapping("/order/place")
     public String placeOrder(HttpSession session, RedirectAttributes redirectAttrs) {
         String buyerEmail = (String) session.getAttribute("BUYER_EMAIL");
-        List<CartItemDto> cart = getCart(session);
 
+        // Guard: session may have expired
+        if (buyerEmail == null || buyerEmail.isBlank()) {
+            log.warn("placeOrder() called with null/empty BUYER_EMAIL — session expired");
+            redirectAttrs.addFlashAttribute("errorMsg", "Your session has expired. Please login again.");
+            return "redirect:/buyer/login?error=session";
+        }
+
+        List<CartItemDto> cart = getCart(session);
         if (cart.isEmpty()) {
             redirectAttrs.addFlashAttribute("errorMsg", "Cart is empty!");
             return "redirect:/buyer/cart";
@@ -154,9 +171,14 @@ public class BuyerController {
             redirectAttrs.addFlashAttribute("orderId", order.getId());
             redirectAttrs.addFlashAttribute("total", order.getTotalAmount());
             return "redirect:/buyer/order/success";
+        } catch (IllegalStateException e) {
+            // Stock shortage
+            log.warn("Order placement — stock issue: {}", e.getMessage());
+            redirectAttrs.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/buyer/cart";
         } catch (Exception e) {
             log.error("Order placement failed: {}", e.getMessage());
-            redirectAttrs.addFlashAttribute("errorMsg", "Order failed: " + e.getMessage());
+            redirectAttrs.addFlashAttribute("errorMsg", "Order could not be placed. Please try again.");
             return "redirect:/buyer/cart";
         }
     }
@@ -167,6 +189,9 @@ public class BuyerController {
     @GetMapping("/orders")
     public String myOrders(HttpSession session, Model model) {
         String buyerEmail = (String) session.getAttribute("BUYER_EMAIL");
+        if (buyerEmail == null) {
+            return "redirect:/buyer/login?error=session";
+        }
         model.addAttribute("orders", orderService.getOrdersByBuyer(buyerEmail));
         model.addAttribute("buyerName", session.getAttribute("BUYER_NAME"));
         return "buyer/orders";

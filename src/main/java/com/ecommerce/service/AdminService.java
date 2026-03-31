@@ -7,13 +7,18 @@ import com.ecommerce.repository.AdminConfirmationRepository;
 import com.ecommerce.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * AdminService — manages admin authentication and registration.
+ *
+ * NOTE: Passwords are stored and compared in PLAIN TEXT for this dev phase.
+ * No PasswordEncoder is used intentionally.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -21,14 +26,19 @@ public class AdminService {
 
     private final AdminRepository adminRepository;
     private final AdminConfirmationRepository confirmationRepository;
-    private final PasswordEncoder passwordEncoder;
 
     // ─── Authentication ────────────────────────────────────────────────────
 
+    /**
+     * Authenticate admin by username and plain-text password.
+     * Returns empty if username not found or password does not match.
+     */
     public Optional<Admin> authenticate(String username, String rawPassword) {
-        // NoOpPasswordEncoder: matches() does a plain equals() comparison
+        if (username == null || username.isBlank() || rawPassword == null || rawPassword.isBlank()) {
+            return Optional.empty();
+        }
         return adminRepository.findByUsername(username)
-                .filter(admin -> passwordEncoder.matches(rawPassword, admin.getPasswordHash()));
+                .filter(admin -> rawPassword.equals(admin.getPassword()));
     }
 
     // ─── Registration ──────────────────────────────────────────────────────
@@ -38,8 +48,8 @@ public class AdminService {
         if (adminRepository.existsByUsername(dto.getUsername())) {
             throw new IllegalArgumentException("Username already taken: " + dto.getUsername());
         }
-        // NoOpPasswordEncoder: encode() returns the password as-is (plain text)
-        Admin admin = new Admin(dto.getUsername(), passwordEncoder.encode(dto.getPassword()));
+        // Store password in plain text — no encoding
+        Admin admin = new Admin(dto.getUsername(), dto.getPassword());
         Admin saved = adminRepository.save(admin);
         log.info("Admin registered: {}", saved.getUsername());
         return saved;
@@ -58,4 +68,3 @@ public class AdminService {
                 .findByStatusOrderByCreatedAtDesc(AdminConfirmation.ConfirmationStatus.PENDING);
     }
 }
-

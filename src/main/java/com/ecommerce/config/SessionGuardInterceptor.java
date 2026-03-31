@@ -26,7 +26,7 @@ public class SessionGuardInterceptor implements HandlerInterceptor {
 
     private static final String[] SELLER_PUBLIC = {"/seller/login", "/seller/register"};
     private static final String[] BUYER_PUBLIC  = {"/buyer/login", "/buyer/register"};
-    private static final String[] ADMIN_PUBLIC  = {"/admin/login"};
+    private static final String[] ADMIN_PUBLIC  = {"/admin/login", "/admin/register"};
 
     @Override
     public boolean preHandle(HttpServletRequest request,

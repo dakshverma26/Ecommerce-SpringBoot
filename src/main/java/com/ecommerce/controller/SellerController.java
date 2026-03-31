@@ -28,6 +28,12 @@ public class SellerController {
     public String dashboard(HttpSession session, Model model) {
         String sellerEmail = (String) session.getAttribute("SELLER_EMAIL");
         String sellerName  = (String) session.getAttribute("SELLER_NAME");
+
+        // Guard: session may be null (interceptor should catch first, but defensive)
+        if (sellerEmail == null) {
+            return "redirect:/seller/login?error=session";
+        }
+
         List<Product> products = sellerService.getProductsBySeller(sellerEmail);
         model.addAttribute("sellerName", sellerName);
         model.addAttribute("products", products);
@@ -41,6 +47,9 @@ public class SellerController {
     @GetMapping("/products")
     public String listProducts(HttpSession session, Model model) {
         String sellerEmail = (String) session.getAttribute("SELLER_EMAIL");
+        if (sellerEmail == null) {
+            return "redirect:/seller/login?error=session";
+        }
         model.addAttribute("products", sellerService.getProductsBySeller(sellerEmail));
         model.addAttribute("sellerName", session.getAttribute("SELLER_NAME"));
         return "seller/products";
@@ -61,8 +70,12 @@ public class SellerController {
                              Model model) {
         if (result.hasErrors()) return "seller/add-product";
 
+        String sellerEmail = (String) session.getAttribute("SELLER_EMAIL");
+        if (sellerEmail == null) {
+            return "redirect:/seller/login?error=session";
+        }
+
         try {
-            String sellerEmail = (String) session.getAttribute("SELLER_EMAIL");
             sellerService.addProduct(dto, image, sellerEmail);
             redirectAttrs.addFlashAttribute("successMsg", "Product added successfully!");
             return "redirect:/seller/products";
@@ -76,8 +89,14 @@ public class SellerController {
     @GetMapping("/product/edit/{id}")
     public String editProductPage(@PathVariable Long id, HttpSession session, Model model) {
         String sellerEmail = (String) session.getAttribute("SELLER_EMAIL");
+        if (sellerEmail == null) {
+            return "redirect:/seller/login?error=session";
+        }
         Product product = sellerService.getProductById(id);
-        // Populate DTO from entity
+        // Ensure seller owns this product
+        if (!product.getSeller().getEmail().equals(sellerEmail)) {
+            return "redirect:/seller/products";
+        }
         ProductDto dto = new ProductDto();
         dto.setName(product.getName());
         dto.setCategory(product.getCategory());
@@ -102,10 +121,17 @@ public class SellerController {
             model.addAttribute("productId", id);
             return "seller/edit-product";
         }
+        String sellerEmail = (String) session.getAttribute("SELLER_EMAIL");
+        if (sellerEmail == null) {
+            return "redirect:/seller/login?error=session";
+        }
         try {
-            String sellerEmail = (String) session.getAttribute("SELLER_EMAIL");
             sellerService.updateProduct(id, dto, image, sellerEmail);
             redirectAttrs.addFlashAttribute("successMsg", "Product updated successfully!");
+            return "redirect:/seller/products";
+        } catch (SecurityException e) {
+            log.warn("Unauthorized product update attempt for product {} by {}", id, sellerEmail);
+            redirectAttrs.addFlashAttribute("errorMsg", "Unauthorized: you don't own this product.");
             return "redirect:/seller/products";
         } catch (Exception e) {
             log.error("Failed to update product {}: {}", id, e.getMessage());
@@ -120,8 +146,19 @@ public class SellerController {
                                 HttpSession session,
                                 RedirectAttributes redirectAttrs) {
         String sellerEmail = (String) session.getAttribute("SELLER_EMAIL");
-        sellerService.deleteProduct(id, sellerEmail);
-        redirectAttrs.addFlashAttribute("successMsg", "Product deleted.");
+        if (sellerEmail == null) {
+            return "redirect:/seller/login?error=session";
+        }
+        try {
+            sellerService.deleteProduct(id, sellerEmail);
+            redirectAttrs.addFlashAttribute("successMsg", "Product deleted.");
+        } catch (SecurityException e) {
+            log.warn("Unauthorized delete attempt for product {} by {}", id, sellerEmail);
+            redirectAttrs.addFlashAttribute("errorMsg", "Unauthorized: you don't own this product.");
+        } catch (Exception e) {
+            log.error("Failed to delete product {}: {}", id, e.getMessage());
+            redirectAttrs.addFlashAttribute("errorMsg", "Failed to delete product.");
+        }
         return "redirect:/seller/products";
     }
 }

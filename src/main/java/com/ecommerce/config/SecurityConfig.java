@@ -10,25 +10,37 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
- * SecurityConfig — Role-based URL access control.
+ * SecurityConfig — Spring Security configuration.
+ *
+ * Authentication strategy:
+ *   - Auth is managed MANUALLY via HTTP session attributes (not Spring Security principal).
+ *     This is because we have 3 separate user tables (admins, buyers, sellers).
+ *   - Role enforcement is done by SessionGuardInterceptor + manual null-checks in controllers.
+ *   - Spring Security is kept only for: URL permitting, CSRF control, and logout support.
+ *
+ * Password strategy (DEV PHASE):
+ *   - NoOpPasswordEncoder is registered as the PasswordEncoder bean.
+ *   - This means encode() returns the raw string as-is, and matches() does a plain equals().
+ *   - All three services (AdminService, BuyerService, SellerService) store and compare
+ *     passwords in PLAIN TEXT — no hashing is performed.
+ *   - NOTE: Replace with BCryptPasswordEncoder before production deployment.
  *
  * Access matrix:
- *  /seller/**      → SELLER role only  (except /seller/login, /seller/register)
- *  /buyer/**       → BUYER role only   (except /buyer/login, /buyer/register)
- *  /admin/**       → ADMIN role only   (except /admin/login)
- *  /               → public
- *  /uploads/**     → public (for product images)
- *
- * Auth is handled manually via session attributes (not Spring Security principal)
- * because we have 3 separate user tables. Spring Security is used only for
- * BCrypt, CSRF, and URL protection via session-based role check in controllers.
- *
- * NOTE: We disable Spring Security's auto login form to use our own Thymeleaf forms.
+ *   /seller/**  → SELLER_EMAIL session  (except /seller/login, /seller/register)
+ *   /buyer/**   → BUYER_EMAIL session   (except /buyer/login, /buyer/register)
+ *   /admin/**   → ADMIN_USER session    (except /admin/login, /admin/register)
+ *   /           → public
+ *   /uploads/** → public (product images)
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /**
+     * NoOpPasswordEncoder is intentional for this dev phase.
+     * encode() = no-op (returns raw string), matches() = plain equals().
+     */
+    @SuppressWarnings("deprecation")
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
@@ -37,16 +49,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // We manage auth manually via session; open all URLs at Security level
-            // and enforce roles in controllers + an interceptor
+            // All URL-level auth is handled by SessionGuardInterceptor
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().permitAll()
             )
-            // Disable default login page
+            // Disable Spring Security's default login page — we use our own Thymeleaf forms
             .formLogin(form -> form.disable())
-            // Disable HTTP basic
+            // Disable HTTP Basic auth
             .httpBasic(basic -> basic.disable())
-            // Allow logout via POST
+            // Support GET /logout to invalidate session and redirect to home
             .logout(logout -> logout
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
                 .logoutSuccessUrl("/")
@@ -54,7 +65,8 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             )
-            // CSRF disabled — custom session approach; enable in production with proper CSRF tokens
+            // CSRF disabled — custom session approach.
+            // Enable in production with proper CSRF tokens.
             .csrf(csrf -> csrf.disable());
 
         return http.build();

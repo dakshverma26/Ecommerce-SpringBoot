@@ -37,6 +37,12 @@ public class Order {
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private AdminConfirmation adminConfirmation;
 
+    @Column(name = "razorpay_order_id")
+    private String razorpayOrderId;
+
+    @Column(name = "razorpay_payment_id")
+    private String razorpayPaymentId;
+
     public enum OrderStatus {
         PENDING, CONFIRMED, CANCELLED
     }

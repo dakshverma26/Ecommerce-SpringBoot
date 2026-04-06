@@ -32,7 +32,7 @@ public class OrderService {
      * - Creates AdminConfirmation (PENDING)
      */
     @Transactional
-    public Order placeOrder(List<CartItemDto> cart, String buyerEmail) {
+    public Order placeOrder(List<CartItemDto> cart, String buyerEmail, String razorpayOrderId, String razorpayPaymentId) {
         Buyer buyer = buyerRepository.findByEmail(buyerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Buyer not found: " + buyerEmail));
 
@@ -41,6 +41,8 @@ public class OrderService {
                 .sum();
 
         Order order = new Order(buyer, total);
+        order.setRazorpayOrderId(razorpayOrderId);
+        order.setRazorpayPaymentId(razorpayPaymentId);
         order = orderRepository.save(order);
 
         List<OrderItem> items = new ArrayList<>();

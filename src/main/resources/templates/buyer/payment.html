@@ -18,10 +18,10 @@
 <div class="app-container narrow">
     <h1 class="page-title">✅ Review &amp; Confirm Order</h1>
 
-    <!-- Payment gateway is DISABLED — orders go directly to confirmed status -->
-    <div class="info-card" style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;">
-        <strong>🎉 No payment required!</strong>
-        <p style="margin: 4px 0 0;">Review your items below and click <strong>Confirm Order</strong> to place it instantly.</p>
+    <!-- Payment Information -->
+    <div class="info-card" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;">
+        <strong>💳 Secure Payment via Razorpay</strong>
+        <p style="margin: 4px 0 0;">Review your items below and click <strong>Pay with Razorpay</strong> to proceed.</p>
     </div>
 
     <div class="order-summary">
@@ -38,10 +38,71 @@
 
     <div class="form-actions">
         <a th:href="@{/buyer/cart}" class="btn btn-outline">← Back to Cart</a>
-        <form th:action="@{/buyer/order/place}" method="post" style="display:inline">
-            <button type="submit" id="btn-confirm-order" class="btn btn-primary">✅ Confirm Order</button>
-        </form>
+        <button id="rzp-button" class="btn btn-primary">Pay with Razorpay</button>
     </div>
+
+    <!-- Hidden form to post to backend after successful payment -->
+    <form id="razorpay-success-form" th:action="@{/buyer/order/verify-and-place}" method="post" style="display:none;">
+        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+    </form>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script th:inline="javascript">
+        var buyerName = /*[[${buyerName}]]*/ 'Buyer';
+        var razorpayKey = /*[[${@environment.getProperty('key.id')}]]*/ 'rzp_test_key';
+        
+        document.getElementById('rzp-button').onclick = function(e) {
+            e.preventDefault();
+            this.disabled = true;
+            this.innerText = 'Creating Order...';
+
+            fetch('/api/payment/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => {
+                if(!res.ok) throw new Error('Order creation failed');
+                return res.json();
+            })
+            .then(data => {
+                var options = {
+                    "key": razorpayKey,
+                    "amount": data.amount,
+                    "currency": data.currency,
+                    "name": "EcommerceHub",
+                    "description": "Purchase Order",
+                    "order_id": data.id,
+                    "handler": function (response){
+                        document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                        document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+                        document.getElementById('razorpay_signature').value = response.razorpay_signature;
+                        document.getElementById('razorpay-success-form').submit();
+                    },
+                    "prefill": {
+                        "name": buyerName
+                    },
+                    "theme": {
+                        "color": "#4caf50"
+                    }
+                };
+                var rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response){
+                    alert("Payment Failed: " + response.error.description);
+                });
+                rzp.open();
+                
+                document.getElementById('rzp-button').disabled = false;
+                document.getElementById('rzp-button').innerText = 'Pay with Razorpay';
+            })
+            .catch(err => {
+                alert(err.message);
+                document.getElementById('rzp-button').disabled = false;
+                document.getElementById('rzp-button').innerText = 'Pay with Razorpay';
+            });
+        }
+    </script>
 </div>
 </body>
 </html>

@@ -6,6 +6,7 @@ import com.ecommerce.entity.Product;
 import com.ecommerce.service.BuyerService;
 import com.ecommerce.service.OrderService;
 import com.ecommerce.service.ProductService;
+import com.ecommerce.service.RazorpayService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class BuyerController {
     private final ProductService productService;
     private final OrderService orderService;
     private final BuyerService buyerService;
+    private final RazorpayService razorpayService;
 
     private static final String CART_SESSION_KEY = "BUYER_CART";
 
@@ -148,13 +150,14 @@ public class BuyerController {
         return "buyer/payment";
     }
 
-    @PostMapping("/order/place")
-    public String placeOrder(HttpSession session, RedirectAttributes redirectAttrs) {
+    @PostMapping("/order/verify-and-place")
+    public String verifyAndPlaceOrder(@RequestParam("razorpay_payment_id") String paymentId,
+                                      @RequestParam("razorpay_order_id") String orderId,
+                                      @RequestParam("razorpay_signature") String signature,
+                                      HttpSession session, RedirectAttributes redirectAttrs) {
         String buyerEmail = (String) session.getAttribute("BUYER_EMAIL");
 
-        // Guard: session may have expired
         if (buyerEmail == null || buyerEmail.isBlank()) {
-            log.warn("placeOrder() called with null/empty BUYER_EMAIL — session expired");
             redirectAttrs.addFlashAttribute("errorMsg", "Your session has expired. Please login again.");
             return "redirect:/buyer/login?error=session";
         }
@@ -165,14 +168,21 @@ public class BuyerController {
             return "redirect:/buyer/cart";
         }
 
+        // Verify Razorpay Payment Signature
+        boolean isValid = razorpayService.verifySignature(orderId, paymentId, signature);
+        if (!isValid) {
+            log.warn("Payment signature verification failed for buyer: {}", buyerEmail);
+            redirectAttrs.addFlashAttribute("errorMsg", "Payment verification failed. Please try again or contact support.");
+            return "redirect:/buyer/payment";
+        }
+
         try {
-            Order order = orderService.placeOrder(cart, buyerEmail);
-            session.removeAttribute(CART_SESSION_KEY); // clear cart after order
+            Order order = orderService.placeOrder(cart, buyerEmail, orderId, paymentId);
+            session.removeAttribute(CART_SESSION_KEY);
             redirectAttrs.addFlashAttribute("orderId", order.getId());
             redirectAttrs.addFlashAttribute("total", order.getTotalAmount());
             return "redirect:/buyer/order/success";
         } catch (IllegalStateException e) {
-            // Stock shortage
             log.warn("Order placement — stock issue: {}", e.getMessage());
             redirectAttrs.addFlashAttribute("errorMsg", e.getMessage());
             return "redirect:/buyer/cart";
